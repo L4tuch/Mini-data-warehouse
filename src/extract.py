@@ -25,7 +25,7 @@ df = pd.read_csv(path)
 df['Description'] = df['Description'].astype('category')
 df['Quantity'] = df['Quantity'].astype('int16')
 df["InvoiceDate"] = pd.to_datetime(
-    df["InvoiceDate"], dayfirst=True, errors="coerce")
+df["InvoiceDate"], dayfirst=True, errors="coerce")
 df['UnitPrice'] = df['UnitPrice'].astype('float32')
 df['Country'] = df['Country'].astype('category')
 
