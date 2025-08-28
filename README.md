@@ -32,3 +32,18 @@ The dataset is used here **strictly for educational and portfolio purposes**.
 - `extract.py` reads `data.csv` and splits it into 4 raw CSV files:  
   `customers.csv`, `products.csv`, `orders.csv`, `order_items.csv`  
 - Raw files are stored in `data/raw/` and ready for loading to staging
+
+
+## 🗄️ Database Setup (current state)
+
+SQL scripts live in the `sql/` folder.
+
+- **01_create_schemas.sql** — creates two PostgreSQL schemas:
+  - `stg` → staging area (raw data loaded from CSVs)
+  - `dw`  → data warehouse layer (star schema: dimensions + facts)
+
+> Next scripts to be added:
+> 02_stg_tables.sql, 03_dw_tables.sql, 04_transforms.sql, 05_quality_checks.sql, 06_views_kpis.sql
+
+---
+
