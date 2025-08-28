@@ -41,9 +41,10 @@ SQL scripts live in the `sql/` folder.
 - **01_create_schemas.sql** — creates two PostgreSQL schemas:
   - `stg` → staging area (raw data loaded from CSVs)
   - `dw`  → data warehouse layer (star schema: dimensions + facts)
+  - **02_stg_tables.sql** — defines staging tables mirroring `data/raw/` CSVs.
 
 > Next scripts to be added:
-> 02_stg_tables.sql, 03_dw_tables.sql, 04_transforms.sql, 05_quality_checks.sql, 06_views_kpis.sql
+> 03_dw_tables.sql, 04_transforms.sql, 05_quality_checks.sql, 06_views_kpis.sql
 
 ---
 
