@@ -1,54 +1,92 @@
-""" 
-data/raw/customers.csv: CustomerID, Country
+"""
+Input:
+  data/external/data.csv  (original Kaggle dataset)
 
-data/raw/products.csv: stock_code, description, unit_price
-
-data/raw/orders.csv: invoice_no, invoice_date, CustomerID
-
-data/raw/order_items.csv: invoice_no, stock_code, quantity, unit_price
-
+Output (raw tables, 1:1 with source + batch metadata):
+  data/raw/customers.csv    : customer_id, country, batch_id, ingestion_time
+  data/raw/products.csv     : stock_code, description, unit_price, batch_id, ingestion_time
+  data/raw/orders.csv       : invoice_no, invoice_date, customer_id, batch_id, ingestion_time
+  data/raw/order_items.csv  : invoice_no, stock_code, quantity, unit_price, batch_id, ingestion_time
 """
 
-import pandas as pd
 from pathlib import Path
+from datetime import datetime
+import pandas as pd
 
+# ── Paths ─────────────────────────────────────────────────────────────
+in_path = Path("./data/external/data.csv")
+out_dir = Path("./data/raw")
+out_dir.mkdir(parents=True, exist_ok=True)
 
-# Define input and output paths
-path = Path("./data/external/data.csv")
-out_path = Path("./data/raw/")
+# ── Batch metadata ─────────────────────────────────────────────────────
+batch_id = int(datetime.now().strftime("%Y%m%d%H%M%S"))
+ingestion_time = datetime.now().isoformat(timespec="seconds")
 
-# Load the external dataset
-df = pd.read_csv(path)
+# ── Read CSV with robust encoding handling ─────────────────────────────
+try:
+    df = pd.read_csv(in_path, encoding="utf-8")
+except UnicodeDecodeError:
+    print("⚠️ UTF-8 failed, retrying with latin1 encoding...")
+    df = pd.read_csv(in_path, encoding="latin1")
 
+# ── Normalize column names to snake_case ───────────────────────────────
+df = df.rename(columns={
+    "InvoiceNo": "invoice_no",
+    "StockCode": "stock_code",
+    "Description": "description",
+    "Quantity": "quantity",
+    "InvoiceDate": "invoice_date",
+    "UnitPrice": "unit_price",
+    "CustomerID": "customer_id",
+    "Country": "country"
+})
 
-# Type conversions / memory optimizations
-df['Description'] = df['Description'].astype('category')
-df['Quantity'] = df['Quantity'].astype('int16')
-df["InvoiceDate"] = pd.to_datetime(df["InvoiceDate"], dayfirst=True, errors="coerce")
-df['UnitPrice'] = df['UnitPrice'].astype('float32')
-df['Country'] = df['Country'].astype('category')
+# ── Type conversions / light memory optimization ───────────────────────
+df["description"]  = df["description"].astype("category")
+df["country"]      = df["country"].astype("category")
+df["quantity"]     = df["quantity"].astype("int16")
+df["unit_price"]   = df["unit_price"].astype("float32")
+df["invoice_date"] = pd.to_datetime(df["invoice_date"], dayfirst=True, errors="coerce")
 
+# ── Build normalized raw tables ────────────────────────────────────────
+customers = (
+    df[["customer_id", "country"]]
+    .dropna(subset=["customer_id"])
+    .drop_duplicates()
+)
 
-# Split into normalized tables, delete null, delete duplicates, filter data in quantity
+products = (
+    df[["stock_code", "description", "unit_price"]]
+    .dropna(subset=["stock_code"])
+    .drop_duplicates(subset=["stock_code"])
+)
 
-customers = (df[["CustomerID", "Country"]]
-             .dropna(subset=["CustomerID"])
-             .drop_duplicates())
+orders = (
+    df[["invoice_no", "invoice_date", "customer_id"]]
+    .dropna(subset=["invoice_no", "customer_id"])
+    .drop_duplicates(subset=["invoice_no"])
+)
 
-products = (df[["StockCode", "Description", "UnitPrice"]]
-            .dropna(subset=["StockCode"])
-            .drop_duplicates(subset=["StockCode"]))
+order_items = (
+    df[["invoice_no", "stock_code", "quantity", "unit_price"]]
+    .dropna(subset=["invoice_no", "stock_code"])
+    .query("quantity > 0")
+    .drop_duplicates(subset=["invoice_no", "stock_code"])
+)
 
-orders = (df[["InvoiceNo", "InvoiceDate", "CustomerID"]]
-          .dropna(subset=["InvoiceNo", "CustomerID"])
-          .drop_duplicates(subset=["InvoiceNo"]))
+# ── Attach batch metadata ──────────────────────────────────────────────
+for t in (customers, products, orders, order_items):
+    t["batch_id"] = batch_id
+    t["ingestion_time"] = ingestion_time
 
-order_items = (df[["InvoiceNo", "StockCode", "Quantity", "UnitPrice"]]
-               .dropna(subset=["InvoiceNo", "StockCode"])
-               .query("Quantity > 0"))
+# ── Save CSVs (UTF-8 for portability) ─────────────────────────────────
+customers.to_csv(out_dir / "customers.csv", index=False, encoding="utf-8")
+products.to_csv(out_dir / "products.csv", index=False, encoding="utf-8")
+orders.to_csv(out_dir / "orders.csv", index=False, encoding="utf-8")
+order_items.to_csv(out_dir / "order_items.csv", index=False, encoding="utf-8")
 
-# Save tables to CSV (UTF-8 for portability)
-customers.to_csv(out_path/"customers.csv", index=False, encoding='UTF-8')
-products.to_csv(out_path/"products.csv", index=False, encoding='UTF-8')
-orders.to_csv(out_path/"orders.csv", index=False, encoding='UTF-8')
-order_items.to_csv(out_path/"order_items.csv", index=False, encoding='UTF-8')
+print(
+    f"Extract finished - batch_id={batch_id} | "
+    f"customers={len(customers)}, products={len(products)}, "
+    f"orders={len(orders)}, order_items={len(order_items)}"
+)
