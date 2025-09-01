@@ -41,6 +41,23 @@ The dataset is used here **strictly for educational and portfolio purposes**.
 
 ---
 
+
+---
+
+## 📂 Data Source
+
+This project uses the **E-Commerce Data** dataset available on Kaggle:  
+[E-Commerce Data (carrie1)](https://www.kaggle.com/datasets/carrie1/ecommerce-data)
+
+The dataset contains transactional records from a UK-based online store (Dec 2010 – Dec 2011).  
+⚠️ The dataset license is marked as **Unknown** on Kaggle.  
+
+For this reason, the raw CSV file is **not included in this repository**.  
+To run the project, please download it manually from Kaggle and place it in the `data/external/` folder as `data.csv`.  
+The dataset is used here **strictly for educational and portfolio purposes**.
+
+---
+
 ## 🎯 Project Goals
 - Build an end-to-end ETL pipeline with Python & SQL  
 - Practice multi-layer modeling: `raw → stg → dw`  
@@ -52,18 +69,10 @@ The dataset is used here **strictly for educational and portfolio purposes**.
 ---
 
 ## 📌 Current Progress
-- **`extract.py`**:  
-  - reads `data.csv`  
-  - splits it into 4 normalized CSVs (`customers.csv`, `products.csv`, `orders.csv`, `order_items.csv`)  
-  - adds `batch_id` and `ingestion_time` metadata  
-  - stores files in `data/raw/`
-
-- **SQL scripts in `sql/`:**
-  - `01_create_schemas.sql` → creates PostgreSQL schemas:  
-    - `raw` → landing zone (CSV data 1:1 with source)  
-    - `stg` → staging area (cleaned, typed, deduplicated)  
-    - `dw`  → data warehouse layer (star schema: dimensions + facts)  
-  - `02_raw_tables.sql` → defines tables in `raw.*` for CSV ingestion  
+- **`extract.py`** → reads `data.csv`, splits into 4 normalized CSVs (`customers.csv`, `products.csv`, `orders.csv`, `order_items`) with batch metadata  
+- **`01_create_schemas.sql`** → creates PostgreSQL schemas (`raw`, `stg`, `dw`)  
+- **`02_raw_tables.sql`** → defines RAW tables for CSV ingestion  
+- **`load_to_raw.py`** → loads CSVs from `data/raw/` into `raw.*` tables in PostgreSQL  
 
 ---
 
@@ -94,7 +103,7 @@ The project uses [`python-dotenv`](https://pypi.org/project/python-dotenv/) to l
 Python scripts orchestrate the ETL pipeline:
 
 - **extract.py** → splits raw dataset into 4 normalized CSVs with batch metadata  
-- **load_raw.py** *(planned)* → loads CSVs into `raw.*` tables  
+- **load_to_raw.py** → loads CSVs into `raw.*` tables  
 - **run_sql.py** *(planned)* → helper to execute SQL scripts in order  
 - **main.py** *(planned)* → orchestrates the whole pipeline:
   1. extract  
@@ -110,4 +119,6 @@ Python scripts orchestrate the ETL pipeline:
 ## ⚙️ Requirements
 
 Main dependencies are listed in `requirements.txt`:
+
+
 
