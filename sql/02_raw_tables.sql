@@ -1,10 +1,6 @@
--- 02_raw_tables.sql
--- Purpose:
---   Create RAW-layer tables (1:1 with CSVs + batch metadata).
---   No constraints, no indexes. All cleaning/typing happens later in STG.
--- 
--- Prerequisite:
---   Schema 'raw' is created in 01_create_schemas.sql
+-- RAW tables (1:1 with CSV) + batch metadata.
+-- No cleaning, no FKs; only technical columns: batch_id, ingestion_time.
+-- Light indexes on (batch_id) / natural keys to speed up loads.
 
 -- raw.customers
 CREATE TABLE IF NOT EXISTS raw.customers (
