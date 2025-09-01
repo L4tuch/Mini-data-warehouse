@@ -1,7 +1,8 @@
+
 """
-load_to_raw.py
---------------
-Loads CSV files from data/raw/ into PostgreSQL RAW tables.
+Fast-load CSVs from data/raw/ into raw.* tables using COPY.
+Append-only by batch_id; requires DB creds from config/.env.
+
 
 Steps:
 1. Read database credentials from config/.env

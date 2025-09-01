@@ -1,12 +1,7 @@
 """
-Input:
-  data/external/data.csv  (original Kaggle dataset)
-
-Output (raw tables, 1:1 with source + batch metadata):
-  data/raw/customers.csv    : customer_id, country, batch_id, ingestion_time
-  data/raw/products.csv     : stock_code, description, unit_price, batch_id, ingestion_time
-  data/raw/orders.csv       : invoice_no, invoice_date, customer_id, batch_id, ingestion_time
-  data/raw/order_items.csv  : invoice_no, stock_code, quantity, unit_price, batch_id, ingestion_time
+Split Kaggle data.csv into 4 CSVs (customers/products/orders/order_items).
+Adds batch_id + ingestion_time, normalizes column names (snake_case), light dedupe, basic filters.
+Writes to data/raw/; encoding handled; no DB work here.
 """
 
 from pathlib import Path
@@ -26,7 +21,7 @@ ingestion_time = datetime.now().isoformat(timespec="seconds")
 try:
     df = pd.read_csv(in_path, encoding="utf-8")
 except UnicodeDecodeError:
-    print("⚠️ UTF-8 failed, retrying with latin1 encoding...")
+    print("UTF-8 failed, retrying with latin1 encoding...")
     df = pd.read_csv(in_path, encoding="latin1")
 
 # ── Normalize column names to snake_case ───────────────────────────────
@@ -42,11 +37,12 @@ df = df.rename(columns={
 })
 
 # ── Type conversions / light memory optimization ───────────────────────
-df["description"]  = df["description"].astype("category")
-df["country"]      = df["country"].astype("category")
-df["quantity"]     = df["quantity"].astype("int16")
-df["unit_price"]   = df["unit_price"].astype("float32")
-df["invoice_date"] = pd.to_datetime(df["invoice_date"], dayfirst=True, errors="coerce")
+df["description"] = df["description"].astype("category")
+df["country"] = df["country"].astype("category")
+df["quantity"] = df["quantity"].astype("int16")
+df["unit_price"] = df["unit_price"].astype("float32")
+df["invoice_date"] = pd.to_datetime(
+    df["invoice_date"], dayfirst=True, errors="coerce")
 
 # ── Build normalized raw tables ────────────────────────────────────────
 customers = (
