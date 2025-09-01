@@ -206,6 +206,20 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-#Data files (ignored)
+# Project-specific ignores
+config/.env
+
+# Keep data out of VCS (license)
 data/external/
 data/raw/
+# (optional future dirs)
+data/interim/
+data/processed/
+
+# OS noise (cross-platform)
+.DS_Store
+Thumbs.db
+
+# Optional: local logs / reports
+logs/
+reports/
