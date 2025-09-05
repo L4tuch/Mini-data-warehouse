@@ -261,14 +261,6 @@ Add these entries to your `.gitignore` (on top of the standard Python template):
 
 ---
 
-## 🧱 Next Steps (optional)
-
-- Docker Compose (Postgres + pgAdmin).
-- Simple Airflow/Prefect DAG (tasks: extract, raw, stg, dw, checks, views).
-- Expand quality checks with summaries (not only assertions).
-- SCD2 for selected dimensions (e.g., customer country).
-
----
 
 ## TL;DR — Quick Start
 
